@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>code-pathfinder</id>
+    <version>1.1.0</version>
+    <title>Code Pathfinder</title>
+    <authors>shivasurya</authors>
+    <owners>shivasurya</owners>
+    <projectUrl>https://codepathfinder.dev/</projectUrl>
+    <licenseUrl>https://github.com/shivasurya/code-pathfinder/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>An open-source security suite aiming to combine structural code analysis with AI-powered vulnerability detection</description>
+    <summary>SAST tool for security analysis</summary>
+    <tags>security static-analysis sast cli vulnerability-detection code-analysis</tags>
+    <projectSourceUrl>https://github.com/shivasurya/code-pathfinder</projectSourceUrl>
+    <packageSourceUrl>https://github.com/shivasurya/code-pathfinder-chocolatey</packageSourceUrl>
+    <docsUrl>https://codepathfinder.dev/</docsUrl>
+    <bugTrackerUrl>https://github.com/shivasurya/code-pathfinder/issues</bugTrackerUrl>
+    <dependencies>
+      <dependency id="python312" version="3.12.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
