@@ -14,7 +14,7 @@
     <tags>security static-analysis sast cli vulnerability-detection code-analysis</tags>
     <projectSourceUrl>https://github.com/shivasurya/code-pathfinder</projectSourceUrl>
     <packageSourceUrl>https://github.com/shivasurya/code-pathfinder-chocolatey</packageSourceUrl>
-    <docsUrl>https://codepathfinder.dev/</docsUrl>
+    <docsUrl>https://codepathfinder.dev/docs/quickstart</docsUrl>
     <bugTrackerUrl>https://github.com/shivasurya/code-pathfinder/issues</bugTrackerUrl>
     <dependencies>
       <dependency id="python312" version="3.12.0" />

@@ -33,7 +33,7 @@ This package is automatically updated when new releases are published.
 
 **Repository**: https://github.com/shivasurya/code-pathfinder-chocolatey
 **Main Project**: https://github.com/shivasurya/code-pathfinder
-**Documentation**: https://codepathfinder.dev/
+**Documentation**: https://codepathfinder.dev/docs/quickstart
 
 ## License
 
