@@ -90,8 +90,10 @@ if (-not $wheelFile) {
   throw "Could not find downloaded wheel file"
 }
 
-# Verify checksum
-$actualHash = (Get-FileHash -Path $wheelFile.FullName -Algorithm SHA256).Hash.ToLower()
+# Verify checksum using certutil (more universally available than Get-FileHash)
+$certutilOutput = certutil -hashfile $wheelFile.FullName SHA256
+$actualHash = ($certutilOutput | Select-Object -Index 1).Trim().ToLower()
+
 if ($actualHash -ne $pypiChecksum) {
   Remove-Item $wheelFile.FullName -Force
   throw "PyPI package checksum mismatch! Expected: $pypiChecksum, Got: $actualHash"
