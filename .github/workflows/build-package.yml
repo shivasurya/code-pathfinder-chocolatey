@@ -83,25 +83,44 @@ jobs:
           - **Filename**: $($nupkg.Name)
           - **Size**: $([math]::Round($nupkg.Length / 1MB, 2)) MB
 
-          ## Next Steps
+          ## Submission to Chocolatey.org
 
-          ### Manual Upload to Chocolatey.org
+          ⚠️ **Important**: Chocolatey.org no longer accepts direct .nupkg uploads via web UI. All packages must be pushed using the \`choco push\` command.
 
-          1. **Download the package artifact**:
-             - Go to the "Summary" tab of this workflow run
-             - Download the artifact: \`chocolatey-package-$version\`
-             - Extract the .nupkg file
+          ### Step 1: Download the Package
 
-          2. **Upload to Chocolatey**:
-             - Visit: https://community.chocolatey.org/packages/upload
-             - Upload the .nupkg file
-             - Wait for moderation approval (1-7 days for first submission)
+          1. Go to the **"Summary"** tab of this workflow run (scroll down)
+          2. Download the artifact: \`chocolatey-package-$version\`
+          3. Extract the .nupkg file
 
-          ### Alternative: Push via CLI (requires API key)
+          ### Step 2: Get Your API Key
+
+          1. Visit: https://community.chocolatey.org/account
+          2. Copy your API key
+          3. On your Windows machine, run:
+             \`\`\`powershell
+             choco apikey --key YOUR_API_KEY --source https://push.chocolatey.org/
+             \`\`\`
+
+          ### Step 3: Push the Package
+
+          From a **Windows machine** with Chocolatey installed:
+
+          \`\`\`powershell
+          choco push $($nupkg.Name) --source https://push.chocolatey.org/
+          \`\`\`
+
+          Or with explicit API key:
 
           \`\`\`powershell
           choco push $($nupkg.Name) --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
           \`\`\`
+
+          ### Step 4: Wait for Moderation
+
+          - First submission: 1-7 days for moderation review
+          - Track status at: https://community.chocolatey.org/packages/code-pathfinder/
+          - You'll receive an email when approved or if changes are requested
 
           ## Package Contents
 
@@ -111,6 +130,12 @@ jobs:
           - Uninstall script: chocolateyuninstall.ps1
           - Verification: VERIFICATION.txt
 
+          ## Future Automation
+
+          After becoming a **trusted maintainer** (3-5 approved packages), you can automate pushes by:
+          1. Adding \`CHOCO_API_KEY\` to GitHub Secrets
+          2. The workflow can auto-push on new releases
+
           ---
-          **Note**: First submissions require manual moderation. After becoming a trusted maintainer, updates can be automated.
+          📚 **Documentation**: https://docs.chocolatey.org/en-us/create/commands/push
           "@ >> $env:GITHUB_STEP_SUMMARY
