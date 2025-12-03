@@ -14,18 +14,34 @@ https://github.com/shivasurya/code-pathfinder/releases/download/v1.1.0/pathfinde
 SHA256 Checksum:
 47c9540c8103886c09266acd3fb576c399d5c7869b8e2dc551999addaa61a418
 
-To verify:
+To verify the binary:
 1. Download the exe from the URL above
-2. Run: Get-FileHash pathfinder-windows-amd64.exe -Algorithm SHA256
-3. Compare with checksum in chocolateyinstall.ps1
+2. Calculate SHA256 using one of these methods:
+   - PowerShell: Get-FileHash pathfinder-windows-amd64.exe -Algorithm SHA256
+   - Command Prompt: certutil -hashfile pathfinder-windows-amd64.exe SHA256
+3. Compare with the checksum above
+
+The installation script uses certutil for checksum verification during installation
+for maximum compatibility across different Windows PowerShell versions.
 
 Python Package:
 The package also installs codepathfinder Python package (version 1.1.0) from PyPI
-in an isolated virtualenv. The installation script verifies the PyPI package
-checksum before installation.
+in an isolated virtualenv. The installation script downloads the wheel file first,
+verifies the SHA256 checksum, and then installs from the verified wheel.
 
 PyPI URL:
 https://pypi.org/project/codepathfinder/1.1.0/
 
-PyPI SHA256 Checksum:
+PyPI SHA256 Checksum (wheel file):
 be9b9f359500bf35eeccdea5d377af29c8d6d80ddfd40095b25fdc90b93e83a6
+
+To verify the PyPI package:
+1. Download: pip download --no-deps codepathfinder==1.1.0
+2. Calculate SHA256 of the downloaded .whl file
+3. Compare with the checksum above
+
+Security Notes:
+- Binary is downloaded from official GitHub Releases (verified by Chocolatey's Get-ChocolateyWebFile)
+- Python package is verified before installation (SHA256 checksum match required)
+- Both checksums are hardcoded in chocolateyinstall.ps1 with marker comments for automation
+- Fresh Python virtualenv is created on every install/upgrade for isolation
