@@ -70,8 +70,18 @@ $venvPip = Join-Path $venvPath "Scripts\pip.exe"
 Write-Host "Installing codepathfinder Python package (version $pythonDslVersion)..." -ForegroundColor Cyan
 
 # Download the wheel file first for verification
-& $venvPip download --no-deps --dest $env:TEMP "codepathfinder==$pythonDslVersion" 2>&1 | Out-Null
-if ($LASTEXITCODE -ne 0) {
+# Temporarily allow errors to not stop execution for pip commands
+$previousErrorAction = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+
+$pipDownloadOutput = & $venvPip download --no-deps --dest $env:TEMP "codepathfinder==$pythonDslVersion" 2>&1
+$pipDownloadExitCode = $LASTEXITCODE
+
+$ErrorActionPreference = $previousErrorAction
+
+if ($pipDownloadExitCode -ne 0) {
+  Write-Host "Pip download output:" -ForegroundColor Red
+  Write-Host $pipDownloadOutput -ForegroundColor Red
   throw "Failed to download codepathfinder package from PyPI"
 }
 
@@ -90,8 +100,14 @@ if ($actualHash -ne $pypiChecksum) {
 Write-Host "PyPI checksum verified: $actualHash" -ForegroundColor Gray
 
 # Install from verified wheel
-& $venvPip install $wheelFile.FullName
-if ($LASTEXITCODE -ne 0) {
+$ErrorActionPreference = 'Continue'
+$pipInstallOutput = & $venvPip install $wheelFile.FullName 2>&1
+$pipInstallExitCode = $LASTEXITCODE
+$ErrorActionPreference = $previousErrorAction
+
+if ($pipInstallExitCode -ne 0) {
+  Write-Host "Pip install output:" -ForegroundColor Red
+  Write-Host $pipInstallOutput -ForegroundColor Red
   Remove-Item $wheelFile.FullName -Force
   throw "Failed to install codepathfinder Python package"
 }
