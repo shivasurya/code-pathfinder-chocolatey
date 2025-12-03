@@ -158,7 +158,7 @@ jobs:
           "@ | Out-File -FilePath $testFile -Encoding UTF8
 
           # Run test script using pathfinder's Python environment
-          $installDir = "`$env:ChocolateyInstall\lib\code-pathfinder\tools"
+          $installDir = "$env:ChocolateyInstall\lib\code-pathfinder\tools"
           $venvPython = Join-Path $installDir "venv\Scripts\python.exe"
 
           Write-Host "Running DSL test script..."
