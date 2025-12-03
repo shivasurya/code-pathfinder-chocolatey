@@ -1,0 +1,116 @@
+name: Build Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 1.1.0) - leave empty to use version from nuspec'
+        required: false
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - 'code-pathfinder.nuspec'
+      - 'tools/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Chocolatey
+        shell: pwsh
+        run: |
+          if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing Chocolatey..."
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          } else {
+            Write-Host "Chocolatey already installed"
+          }
+          choco --version
+
+      - name: Get version from nuspec
+        id: version
+        shell: pwsh
+        run: |
+          $nuspecContent = Get-Content 'code-pathfinder.nuspec' -Raw
+          if ($nuspecContent -match '<version>([^<]+)</version>') {
+            $version = $matches[1]
+            echo "version=$version" >> $env:GITHUB_OUTPUT
+            Write-Host "Package version: $version"
+          } else {
+            throw "Could not extract version from nuspec"
+          }
+
+      - name: Build Chocolatey package
+        shell: pwsh
+        run: |
+          Write-Host "Building package..."
+          choco pack
+
+          $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
+          if (-not $nupkg) {
+            throw "Package build failed - no .nupkg file found"
+          }
+
+          Write-Host "Built package: $($nupkg.Name)"
+          Write-Host "Package size: $([math]::Round($nupkg.Length / 1MB, 2)) MB"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chocolatey-package-${{ steps.version.outputs.version }}
+          path: "*.nupkg"
+          retention-days: 90
+
+      - name: Create package summary
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
+
+          @"
+          # Chocolatey Package Built Successfully
+
+          ## Package Details
+          - **Package**: code-pathfinder
+          - **Version**: $version
+          - **Filename**: $($nupkg.Name)
+          - **Size**: $([math]::Round($nupkg.Length / 1MB, 2)) MB
+
+          ## Next Steps
+
+          ### Manual Upload to Chocolatey.org
+
+          1. **Download the package artifact**:
+             - Go to the "Summary" tab of this workflow run
+             - Download the artifact: \`chocolatey-package-$version\`
+             - Extract the .nupkg file
+
+          2. **Upload to Chocolatey**:
+             - Visit: https://community.chocolatey.org/packages/upload
+             - Upload the .nupkg file
+             - Wait for moderation approval (1-7 days for first submission)
+
+          ### Alternative: Push via CLI (requires API key)
+
+          \`\`\`powershell
+          choco push $($nupkg.Name) --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
+          \`\`\`
+
+          ## Package Contents
+
+          - Binary: pathfinder-windows-amd64.exe (v$version)
+          - Python DSL: codepathfinder v$version
+          - Install script: chocolateyinstall.ps1
+          - Uninstall script: chocolateyuninstall.ps1
+          - Verification: VERIFICATION.txt
+
+          ---
+          **Note**: First submissions require manual moderation. After becoming a trusted maintainer, updates can be automated.
+          "@ >> $env:GITHUB_STEP_SUMMARY
