@@ -144,13 +144,13 @@ jobs:
           # Create a test Python script that uses codepathfinder
           $testFile = "test_dsl.py"
           @"
-          from codepathfinder import rule, Call
+          from codepathfinder import rule
 
           print('Successfully imported codepathfinder module')
 
           # Try to create a simple rule
           @rule
-          def test_rule(call: Call):
+          def test_rule(call):
               return call.name == 'test'
 
           print('Successfully created test rule')
