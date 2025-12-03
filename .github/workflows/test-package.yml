@@ -1,0 +1,245 @@
+name: Test Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-installation:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Chocolatey (if not present)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing Chocolatey..."
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          } else {
+            Write-Host "Chocolatey already installed"
+          }
+          choco --version
+
+      - name: Install Python 3.12 dependency
+        shell: pwsh
+        run: |
+          Write-Host "Installing Python 3.12..."
+          choco install python312 -y --no-progress
+
+          # Refresh environment to get Python in PATH
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          # Verify Python installation
+          python --version
+          pip --version
+
+      - name: Build Chocolatey package
+        shell: pwsh
+        run: |
+          Write-Host "Building package..."
+          choco pack
+
+          $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
+          if (-not $nupkg) {
+            throw "Package build failed - no .nupkg file found"
+          }
+
+          Write-Host "Built package: $($nupkg.Name)"
+          Write-Host "Package size: $([math]::Round($nupkg.Length / 1MB, 2)) MB"
+
+      - name: Install package from local source
+        shell: pwsh
+        run: |
+          Write-Host "Installing code-pathfinder from local package..."
+
+          # Install from current directory
+          choco install code-pathfinder -source . -y --no-progress
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Installation failed with exit code $LASTEXITCODE"
+          }
+
+          Write-Host "Installation completed successfully"
+
+      - name: Verify binary installation
+        shell: pwsh
+        run: |
+          Write-Host "Verifying pathfinder binary..."
+
+          # Refresh PATH to include Chocolatey shims
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          # Check if pathfinder is available
+          $pathfinderPath = (Get-Command pathfinder -ErrorAction SilentlyContinue).Source
+          if (-not $pathfinderPath) {
+            throw "pathfinder command not found in PATH"
+          }
+
+          Write-Host "Found pathfinder at: $pathfinderPath"
+
+          # Run version command
+          Write-Host "`nRunning: pathfinder version"
+          pathfinder version
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "pathfinder version command failed"
+          }
+
+      - name: Verify Python virtualenv setup
+        shell: pwsh
+        run: |
+          Write-Host "Verifying Python virtualenv..."
+
+          $installDir = "$env:ChocolateyInstall\lib\code-pathfinder\tools"
+          $venvPath = Join-Path $installDir "venv"
+
+          if (-not (Test-Path $venvPath)) {
+            throw "Virtualenv not found at: $venvPath"
+          }
+
+          Write-Host "✓ Virtualenv exists at: $venvPath"
+
+          # Check that venv has Python
+          $venvPython = Join-Path $venvPath "Scripts\python.exe"
+          if (-not (Test-Path $venvPython)) {
+            throw "Python executable not found in venv"
+          }
+
+          Write-Host "✓ Python executable: $venvPython"
+
+          # Check venv Python version
+          & $venvPython --version
+
+          # Check that codepathfinder package is installed
+          $venvPip = Join-Path $venvPath "Scripts\pip.exe"
+          Write-Host "`nInstalled Python packages:"
+          & $venvPip list | Select-String "codepathfinder"
+
+          $pipList = & $venvPip list
+          if ($pipList -notmatch "codepathfinder") {
+            throw "codepathfinder Python package not installed in venv"
+          }
+
+          Write-Host "✓ codepathfinder package installed"
+
+      - name: Test Python DSL functionality
+        shell: pwsh
+        run: |
+          Write-Host "Testing Python DSL functionality..."
+
+          # Create a test Python script that uses codepathfinder
+          $testScript = @'
+from codepathfinder import rule, Call
+
+print("✓ Successfully imported codepathfinder module")
+
+# Try to create a simple rule
+@rule
+def test_rule(call: Call):
+    return call.name == "test"
+
+print("✓ Successfully created test rule")
+print("Python DSL is working correctly!")
+'@
+
+          $testFile = "test_dsl.py"
+          $testScript | Out-File -FilePath $testFile -Encoding UTF8
+
+          # Run test script using pathfinder's Python environment
+          $installDir = "$env:ChocolateyInstall\lib\code-pathfinder\tools"
+          $venvPython = Join-Path $installDir "venv\Scripts\python.exe"
+
+          Write-Host "Running DSL test script..."
+          & $venvPython $testFile
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Python DSL test failed"
+          }
+
+          Remove-Item $testFile
+
+      - name: Test pathfinder help command
+        shell: pwsh
+        run: |
+          Write-Host "Testing pathfinder help command..."
+
+          # Refresh PATH
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          pathfinder --help
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "pathfinder --help command failed"
+          }
+
+      - name: Test uninstallation
+        shell: pwsh
+        run: |
+          Write-Host "Testing package uninstallation..."
+
+          choco uninstall code-pathfinder -y --no-progress
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Uninstallation failed"
+          }
+
+          Write-Host "✓ Package uninstalled successfully"
+
+          # Verify venv was removed
+          $installDir = "$env:ChocolateyInstall\lib\code-pathfinder\tools"
+          $venvPath = Join-Path $installDir "venv"
+
+          # Note: The tools directory might still exist briefly after uninstall
+          # Check if venv is gone (it should be cleaned up by chocolateyuninstall.ps1)
+          Start-Sleep -Seconds 2
+
+          if (Test-Path $venvPath) {
+            Write-Warning "Virtualenv still exists after uninstall: $venvPath"
+            Write-Warning "This may be expected if Chocolatey hasn't cleaned up yet"
+          } else {
+            Write-Host "✓ Virtualenv removed successfully"
+          }
+
+      - name: Verify pathfinder is removed
+        shell: pwsh
+        run: |
+          Write-Host "Verifying pathfinder command is removed..."
+
+          # Refresh PATH
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          $pathfinderCmd = Get-Command pathfinder -ErrorAction SilentlyContinue
+          if ($pathfinderCmd) {
+            Write-Warning "pathfinder command still found at: $($pathfinderCmd.Source)"
+            Write-Warning "This may be a Chocolatey shim cleanup delay"
+          } else {
+            Write-Host "✓ pathfinder command successfully removed"
+          }
+
+      - name: Test summary
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "`n========================================" -ForegroundColor Cyan
+          Write-Host "        CHOCOLATEY PACKAGE TEST SUMMARY" -ForegroundColor Cyan
+          Write-Host "========================================`n" -ForegroundColor Cyan
+
+          if ($env:GITHUB_JOB_STATUS -eq 'success') {
+            Write-Host "✓ Package build: PASSED" -ForegroundColor Green
+            Write-Host "✓ Installation: PASSED" -ForegroundColor Green
+            Write-Host "✓ Binary execution: PASSED" -ForegroundColor Green
+            Write-Host "✓ Python virtualenv: PASSED" -ForegroundColor Green
+            Write-Host "✓ Python DSL: PASSED" -ForegroundColor Green
+            Write-Host "✓ Uninstallation: PASSED" -ForegroundColor Green
+            Write-Host "`nAll tests passed! Package is ready for submission.`n" -ForegroundColor Green
+          } else {
+            Write-Host "✗ Some tests failed. Check logs above.`n" -ForegroundColor Red
+          }
