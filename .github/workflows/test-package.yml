@@ -136,25 +136,23 @@ jobs:
           Write-Host "Testing Python DSL functionality..."
 
           # Create a test Python script that uses codepathfinder
-          $testScript = @'
-from codepathfinder import rule, Call
-
-print("✓ Successfully imported codepathfinder module")
-
-# Try to create a simple rule
-@rule
-def test_rule(call: Call):
-    return call.name == "test"
-
-print("✓ Successfully created test rule")
-print("Python DSL is working correctly!")
-'@
-
           $testFile = "test_dsl.py"
-          $testScript | Out-File -FilePath $testFile -Encoding UTF8
+          @"
+          from codepathfinder import rule, Call
+
+          print('Successfully imported codepathfinder module')
+
+          # Try to create a simple rule
+          @rule
+          def test_rule(call: Call):
+              return call.name == 'test'
+
+          print('Successfully created test rule')
+          print('Python DSL is working correctly!')
+          "@ | Out-File -FilePath $testFile -Encoding UTF8
 
           # Run test script using pathfinder's Python environment
-          $installDir = "$env:ChocolateyInstall\lib\code-pathfinder\tools"
+          $installDir = "`$env:ChocolateyInstall\lib\code-pathfinder\tools"
           $venvPython = Join-Path $installDir "venv\Scripts\python.exe"
 
           Write-Host "Running DSL test script..."
