@@ -121,13 +121,19 @@ jobs:
           # Check that codepathfinder package is installed
           $venvPip = Join-Path $venvPath "Scripts\pip.exe"
           Write-Host "`nInstalled Python packages:"
-          & $venvPip list | Select-String "codepathfinder"
 
-          $pipList = & $venvPip list
-          if ($pipList -notmatch "codepathfinder") {
+          # Use pip show instead of pip list for more reliable checking
+          $pipShow = & $venvPip show codepathfinder 2>&1
+
+          if ($LASTEXITCODE -ne 0 -or $pipShow -match "not found") {
+            Write-Host "pip show output:" -ForegroundColor Red
+            Write-Host $pipShow -ForegroundColor Red
             throw "codepathfinder Python package not installed in venv"
           }
 
+          # Display package info
+          Write-Host $pipShow
+          Write-Host ""
           Write-Host "✓ codepathfinder package installed"
 
       - name: Test Python DSL functionality
