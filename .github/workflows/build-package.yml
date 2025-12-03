@@ -68,11 +68,81 @@ jobs:
           path: "*.nupkg"
           retention-days: 90
 
+      - name: Push to Chocolatey.org
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          if (-not $env:CHOCO_API_KEY) {
+            Write-Host "⚠️  CHOCO_API_KEY not set in secrets. Skipping push to Chocolatey.org" -ForegroundColor Yellow
+            Write-Host "To enable automatic publishing:" -ForegroundColor Yellow
+            Write-Host "1. Get API key from https://community.chocolatey.org/account" -ForegroundColor Yellow
+            Write-Host "2. Add it to GitHub Secrets as CHOCO_API_KEY" -ForegroundColor Yellow
+            Write-Host "3. Re-run this workflow" -ForegroundColor Yellow
+            exit 0
+          }
+
+          $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
+          Write-Host "Pushing $($nupkg.Name) to Chocolatey.org..." -ForegroundColor Cyan
+
+          choco push $nupkg.FullName --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
+
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Package successfully pushed to Chocolatey.org!" -ForegroundColor Green
+            Write-Host "Track moderation status at: https://community.chocolatey.org/packages/code-pathfinder/" -ForegroundColor Cyan
+          } else {
+            Write-Host "❌ Failed to push package to Chocolatey.org" -ForegroundColor Red
+            exit 1
+          }
+
       - name: Create package summary
         shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
         run: |
           $version = '${{ steps.version.outputs.version }}'
           $nupkg = Get-ChildItem *.nupkg | Select-Object -First 1
+          $apiKeySet = -not [string]::IsNullOrEmpty($env:CHOCO_API_KEY)
+
+          if ($apiKeySet) {
+            $statusSection = @"
+          ## 🚀 Automated Submission
+
+          The package has been automatically pushed to Chocolatey.org!
+
+          - 📦 Package: $($nupkg.Name)
+          - 🔗 Track status: https://community.chocolatey.org/packages/code-pathfinder/
+          - ⏱️  Moderation time: 1-7 days for first submission
+          - 📧 You'll receive an email when approved or if changes are requested
+
+          ### What Happens Next
+
+          1. **Moderation Review**: Chocolatey moderators will review your package
+          2. **Approval**: Once approved, package will be live on Chocolatey.org
+          3. **Install**: Users can install with: \`choco install code-pathfinder\`
+          "@
+          } else {
+            $statusSection = @"
+          ## ⚠️ Manual Submission Required
+
+          **CHOCO_API_KEY is not set** - Package was built but not pushed automatically.
+
+          ### To Enable Automatic Publishing:
+
+          1. Get your API key from: https://community.chocolatey.org/account
+          2. Add it to GitHub Secrets as \`CHOCO_API_KEY\`
+          3. Re-run this workflow or push changes to trigger automatic publishing
+
+          ### Manual Push Instructions:
+
+          From a Windows machine with Chocolatey installed:
+
+          \`\`\`powershell
+          choco push $($nupkg.Name) --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
+          \`\`\`
+          "@
+          }
 
           @"
           # Chocolatey Package Built Successfully
@@ -83,46 +153,9 @@ jobs:
           - **Filename**: $($nupkg.Name)
           - **Size**: $([math]::Round($nupkg.Length / 1MB, 2)) MB
 
-          ## Submission to Chocolatey.org
+          $statusSection
 
-          ⚠️ **Important**: Chocolatey.org no longer accepts direct .nupkg uploads via web UI. All packages must be pushed using the \`choco push\` command.
-
-          ### Step 1: Download the Package
-
-          1. Go to the **"Summary"** tab of this workflow run (scroll down)
-          2. Download the artifact: \`chocolatey-package-$version\`
-          3. Extract the .nupkg file
-
-          ### Step 2: Get Your API Key
-
-          1. Visit: https://community.chocolatey.org/account
-          2. Copy your API key
-          3. On your Windows machine, run:
-             \`\`\`powershell
-             choco apikey --key YOUR_API_KEY --source https://push.chocolatey.org/
-             \`\`\`
-
-          ### Step 3: Push the Package
-
-          From a **Windows machine** with Chocolatey installed:
-
-          \`\`\`powershell
-          choco push $($nupkg.Name) --source https://push.chocolatey.org/
-          \`\`\`
-
-          Or with explicit API key:
-
-          \`\`\`powershell
-          choco push $($nupkg.Name) --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
-          \`\`\`
-
-          ### Step 4: Wait for Moderation
-
-          - First submission: 1-7 days for moderation review
-          - Track status at: https://community.chocolatey.org/packages/code-pathfinder/
-          - You'll receive an email when approved or if changes are requested
-
-          ## Package Contents
+          ## 📦 Package Contents
 
           - Binary: pathfinder-windows-amd64.exe (v$version)
           - Python DSL: codepathfinder v$version
@@ -130,11 +163,11 @@ jobs:
           - Uninstall script: chocolateyuninstall.ps1
           - Verification: VERIFICATION.txt
 
-          ## Future Automation
+          ## 📥 Artifact Download
 
-          After becoming a **trusted maintainer** (3-5 approved packages), you can automate pushes by:
-          1. Adding \`CHOCO_API_KEY\` to GitHub Secrets
-          2. The workflow can auto-push on new releases
+          The .nupkg file is available as an artifact (90-day retention):
+          - Artifact name: \`chocolatey-package-$version\`
+          - Available in the "Summary" tab below
 
           ---
           📚 **Documentation**: https://docs.chocolatey.org/en-us/create/commands/push
