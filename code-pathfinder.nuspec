@@ -7,7 +7,9 @@
     <authors>shivasurya</authors>
     <owners>shivasurya</owners>
     <projectUrl>https://codepathfinder.dev/</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/shivasurya/code-pathfinder/main/assets/cpv.png</iconUrl>
     <licenseUrl>https://github.com/shivasurya/code-pathfinder/blob/main/LICENSE</licenseUrl>
+    <releaseNotes>https://github.com/shivasurya/code-pathfinder/releases</releaseNotes>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>An open-source security suite aiming to combine structural code analysis with AI-powered vulnerability detection</description>
     <summary>SAST tool for security analysis</summary>
