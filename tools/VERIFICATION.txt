@@ -3,16 +3,16 @@ Verification is intended to assist the Chocolatey moderators and community
 in verifying that this package's contents are trustworthy.
 
 Package: code-pathfinder
-Version: 1.1.0 (Python DSL: 1.1.0)
+Version: 1.1.1 (Python DSL: 1.1.1)
 
 The binary is downloaded from the official GitHub Releases:
-https://github.com/shivasurya/code-pathfinder/releases/tag/v1.1.0
+https://github.com/shivasurya/code-pathfinder/releases/tag/v1.1.1
 
 Binary URL:
-https://github.com/shivasurya/code-pathfinder/releases/download/v1.1.0/pathfinder-windows-amd64.exe
+https://github.com/shivasurya/code-pathfinder/releases/download/v1.1.1/pathfinder-windows-amd64.exe
 
 SHA256 Checksum:
-47c9540c8103886c09266acd3fb576c399d5c7869b8e2dc551999addaa61a418
+e87ff9fef7ad10a34279aef5fdfd1e36de5b0e3e07bf3e2e849b36c9be35acc7
 
 To verify the binary:
 1. Download the exe from the URL above
@@ -30,7 +30,7 @@ in an isolated virtualenv. The installation script downloads the wheel file firs
 verifies the SHA256 checksum, and then installs from the verified wheel.
 
 PyPI URL:
-https://pypi.org/project/codepathfinder/1.1.0/
+https://pypi.org/project/codepathfinder/1.1.1/
 
 PyPI SHA256 Checksum (wheel file):
 be9b9f359500bf35eeccdea5d377af29c8d6d80ddfd40095b25fdc90b93e83a6
