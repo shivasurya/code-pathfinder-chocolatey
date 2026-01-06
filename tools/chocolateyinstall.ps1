@@ -7,7 +7,7 @@ $pythonDslVersion = '1.1.5'  # PYTHON_DSL_VERSION_MARKER
 $url = 'https://github.com/shivasurya/code-pathfinder/releases/download/v1.1.5/pathfinder-windows-amd64.exe'  # URL_MARKER
 $checksum = 'a7742fd60442eb153ca6f7d9fb3a589032e448639320fdf80bcc5af147ac06c2'  # SHA256_MARKER
 $checksumType = 'sha256'
-$pypiChecksum = 'b80facc948d9177051d68fbf024b5934857974bed6aee2e484a412dc6cc5e537 6f0b624287067a387522a1966fe89be019514b9ff51537c5a66951c3ec0bc275 000900c409c766dfa34777ddbfc0c0c3ae45a3d2b6c635dddb3280092967ef8a 93c1972bdf69b53eb1134c445fd586da6e12f8ccaff2acbb6400d3afae93534d d9dd69ca7aaffa6e719b87b4896a117f4ce27b3f15853c459fceb6e1db10320b'  # PYPI_SHA256_MARKER
+$pypiChecksum = 'b80facc948d9177051d68fbf024b5934857974bed6aee2e484a412dc6cc5e537 6f0b624287067a387522a1966fe89be019514b9ff51537c5a66951c3ec0bc275 000900c409c766dfa34777ddbfc0c0c3ae45a3d2b6c635dddb3280092967ef8a 93c1972bdf69b53eb1134c445fd586da6e12f8ccaff2acbb6400d3afae93534d d9dd69ca7aaffa6e719b87b4896a117f4ce27b3f15853c459fceb6e1db10320b 67a7ab5028c2728bb2a53b341d8f4e5b32646f799fcb232e8d25eaf38e5cea5e'  # PYPI_SHA256_MARKER
 
 $finalExeName = 'pathfinder.exe'
 $downloadedFileName = 'pathfinder-windows-amd64.exe'
@@ -94,9 +94,12 @@ if (-not $wheelFile) {
 $certutilOutput = certutil -hashfile $wheelFile.FullName SHA256
 $actualHash = ($certutilOutput | Select-Object -Index 1).Trim().ToLower()
 
-if ($actualHash -ne $pypiChecksum) {
+# Split the checksum string (may contain multiple checksums for different packages)
+$validChecksums = $pypiChecksum -split '\s+'
+
+if ($validChecksums -notcontains $actualHash) {
   Remove-Item $wheelFile.FullName -Force
-  throw "PyPI package checksum mismatch! Expected: $pypiChecksum, Got: $actualHash"
+  throw "PyPI package checksum mismatch! Expected one of: $pypiChecksum, Got: $actualHash"
 }
 
 Write-Host "PyPI checksum verified: $actualHash" -ForegroundColor Gray

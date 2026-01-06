@@ -25,20 +25,24 @@ The installation script uses certutil for checksum verification during installat
 for maximum compatibility across different Windows PowerShell versions.
 
 Python Package:
-The package also installs codepathfinder Python package (version 1.1.0) from PyPI
-in an isolated virtualenv. The installation script downloads the wheel file first,
-verifies the SHA256 checksum, and then installs from the verified wheel.
+The package also installs codepathfinder Python package (version 1.1.5) from PyPI
+in an isolated virtualenv. The installation script downloads the appropriate wheel file
+for the current platform, verifies the SHA256 checksum, and then installs from the verified wheel.
 
 PyPI URL:
 https://pypi.org/project/codepathfinder/1.1.5/
 
-PyPI SHA256 Checksum (wheel file):
-be9b9f359500bf35eeccdea5d377af29c8d6d80ddfd40095b25fdc90b93e83a6
+PyPI SHA256 Checksums (all distribution files):
+b80facc948d9177051d68fbf024b5934857974bed6aee2e484a412dc6cc5e537 6f0b624287067a387522a1966fe89be019514b9ff51537c5a66951c3ec0bc275 000900c409c766dfa34777ddbfc0c0c3ae45a3d2b6c635dddb3280092967ef8a 93c1972bdf69b53eb1134c445fd586da6e12f8ccaff2acbb6400d3afae93534d d9dd69ca7aaffa6e719b87b4896a117f4ce27b3f15853c459fceb6e1db10320b 67a7ab5028c2728bb2a53b341d8f4e5b32646f799fcb232e8d25eaf38e5cea5e
+
+Note: Multiple checksums are listed to support different wheel files (various Python versions
+and platforms). The installer will download the appropriate wheel for your system and verify
+it matches one of these checksums.
 
 To verify the PyPI package:
-1. Download: pip download --no-deps codepathfinder==1.1.0
+1. Download: pip download --no-deps codepathfinder==1.1.5
 2. Calculate SHA256 of the downloaded .whl file
-3. Compare with the checksum above
+3. Compare with one of the checksums above
 
 Security Notes:
 - Binary is downloaded from official GitHub Releases (verified by Chocolatey's Get-ChocolateyWebFile)
