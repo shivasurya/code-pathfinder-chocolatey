@@ -80,18 +80,26 @@ jobs:
             throw "ERROR: Could not extract version from pyproject.toml"
           }
 
-          # Get PyPI package SHA256
-          Write-Host "Fetching PyPI package checksum..."
+          # Get PyPI package SHA256 checksums (all distributions)
+          Write-Host "Fetching PyPI package checksums..."
           $pypiJson = Invoke-RestMethod "https://pypi.org/pypi/codepathfinder/$pythonDslVersion/json"
-          $wheelInfo = $pypiJson.urls | Where-Object { $_.packagetype -eq "bdist_wheel" }
 
-          if (-not $wheelInfo) {
-            throw "ERROR: Could not find wheel package on PyPI for version $pythonDslVersion"
+          # Get all package checksums (wheels and source dist)
+          $allChecksums = @()
+          foreach ($file in $pypiJson.urls) {
+            $sha256 = $file.digests.sha256.ToLower()
+            $allChecksums += $sha256
+            Write-Host "  $($file.filename): $sha256" -ForegroundColor Gray
           }
 
-          $pypiSha256 = $wheelInfo.digests.sha256.ToLower()
+          if ($allChecksums.Count -eq 0) {
+            throw "ERROR: Could not find any packages on PyPI for version $pythonDslVersion"
+          }
+
+          # Join all checksums with spaces
+          $pypiSha256 = $allChecksums -join ' '
           echo "pypi_sha256=$pypiSha256" >> $env:GITHUB_OUTPUT
-          Write-Host "PyPI SHA256: $pypiSha256"
+          Write-Host "Combined PyPI SHA256 checksums ($($allChecksums.Count) files): $pypiSha256"
 
           # Cleanup
           Remove-Item -Path code-pathfinder-repo -Recurse -Force
