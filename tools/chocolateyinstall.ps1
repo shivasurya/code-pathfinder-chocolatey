@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $packageName = 'code-pathfinder'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $version = '1.1.5'  # VERSION_MARKER
-$pythonDslVersion = '1.1.5'  # PYTHON_DSL_VERSION_MARKER
+$pythonSdkVersion = '1.1.5'  # PYTHON_SDK_VERSION_MARKER
 $url = 'https://github.com/shivasurya/code-pathfinder/releases/download/v1.1.5/pathfinder-windows-amd64.exe'  # URL_MARKER
 $checksum = 'a7742fd60442eb153ca6f7d9fb3a589032e448639320fdf80bcc5af147ac06c2'  # SHA256_MARKER
 $checksumType = 'sha256'
@@ -31,7 +31,7 @@ Rename-Item -Path (Join-Path $toolsDir $downloadedFileName) -NewName $finalExeNa
 
 # --- Python Environment Setup ---
 
-Write-Host "Setting up Python environment for DSL support..." -ForegroundColor Cyan
+Write-Host "Setting up Python environment for SDK support..." -ForegroundColor Cyan
 $venvPath = Join-Path $toolsDir "venv"
 
 # Clean up old venv if it exists (ensures fresh install on upgrades)
@@ -48,7 +48,7 @@ try {
   Write-Host ""
   Write-Host "ERROR: Python 3.12 is required but not found!" -ForegroundColor Red
   Write-Host ""
-  Write-Host "code-pathfinder requires Python 3.12 for DSL support." -ForegroundColor Yellow
+  Write-Host "code-pathfinder requires Python 3.12 for SDK support." -ForegroundColor Yellow
   Write-Host "Python should have been installed automatically as a dependency." -ForegroundColor Yellow
   Write-Host ""
   Write-Host "To install Python manually:" -ForegroundColor Cyan
@@ -67,14 +67,14 @@ if ($LASTEXITCODE -ne 0) {
 # Install codepathfinder package with checksum verification
 $venvPip = Join-Path $venvPath "Scripts\pip.exe"
 
-Write-Host "Installing codepathfinder Python package (version $pythonDslVersion)..." -ForegroundColor Cyan
+Write-Host "Installing codepathfinder Python package (version $pythonSdkVersion)..." -ForegroundColor Cyan
 
 # Download the wheel file first for verification
 # Temporarily allow errors to not stop execution for pip commands
 $previousErrorAction = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 
-$pipDownloadOutput = & $venvPip download --no-deps --dest $env:TEMP "codepathfinder==$pythonDslVersion" 2>&1
+$pipDownloadOutput = & $venvPip download --no-deps --dest $env:TEMP "codepathfinder==$pythonSdkVersion" 2>&1
 $pipDownloadExitCode = $LASTEXITCODE
 
 $ErrorActionPreference = $previousErrorAction
@@ -85,7 +85,7 @@ if ($pipDownloadExitCode -ne 0) {
   throw "Failed to download codepathfinder package from PyPI"
 }
 
-$wheelFile = Get-ChildItem "$env:TEMP\codepathfinder-$pythonDslVersion*.whl" | Select-Object -First 1
+$wheelFile = Get-ChildItem "$env:TEMP\codepathfinder-$pythonSdkVersion*.whl" | Select-Object -First 1
 if (-not $wheelFile) {
   throw "Could not find downloaded wheel file"
 }

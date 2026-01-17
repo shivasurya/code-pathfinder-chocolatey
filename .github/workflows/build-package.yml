@@ -158,7 +158,7 @@ jobs:
           ## 📦 Package Contents
 
           - Binary: pathfinder-windows-amd64.exe (v$version)
-          - Python DSL: codepathfinder v$version
+          - Python SDK: codepathfinder v$version
           - Install script: chocolateyinstall.ps1
           - Uninstall script: chocolateyuninstall.ps1
           - Verification: VERIFICATION.txt

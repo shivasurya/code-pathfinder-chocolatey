@@ -136,13 +136,13 @@ jobs:
           Write-Host ""
           Write-Host "✓ codepathfinder package installed"
 
-      - name: Test Python DSL functionality
+      - name: Test Python SDK functionality
         shell: pwsh
         run: |
-          Write-Host "Testing Python DSL functionality..."
+          Write-Host "Testing Python SDK functionality..."
 
           # Create a test Python script that uses codepathfinder
-          $testFile = "test_dsl.py"
+          $testFile = "test_sdk.py"
           @"
           # Test basic import
           import codepathfinder
@@ -156,18 +156,18 @@ jobs:
           if hasattr(codepathfinder, '__version__'):
               print(f'codepathfinder version: {codepathfinder.__version__}')
 
-          print('Python DSL is working correctly!')
+          print('Python SDK is working correctly!')
           "@ | Out-File -FilePath $testFile -Encoding UTF8
 
           # Run test script using pathfinder's Python environment
           $installDir = "$env:ChocolateyInstall\lib\code-pathfinder\tools"
           $venvPython = Join-Path $installDir "venv\Scripts\python.exe"
 
-          Write-Host "Running DSL test script..."
+          Write-Host "Running SDK test script..."
           & $venvPython $testFile
 
           if ($LASTEXITCODE -ne 0) {
-            throw "Python DSL test failed"
+            throw "Python SDK test failed"
           }
 
           Remove-Item $testFile
@@ -243,7 +243,7 @@ jobs:
             Write-Host "✓ Installation: PASSED" -ForegroundColor Green
             Write-Host "✓ Binary execution: PASSED" -ForegroundColor Green
             Write-Host "✓ Python virtualenv: PASSED" -ForegroundColor Green
-            Write-Host "✓ Python DSL: PASSED" -ForegroundColor Green
+            Write-Host "✓ Python SDK: PASSED" -ForegroundColor Green
             Write-Host "✓ Uninstallation: PASSED" -ForegroundColor Green
             Write-Host "`nAll tests passed! Package is ready for submission.`n" -ForegroundColor Green
           } else {

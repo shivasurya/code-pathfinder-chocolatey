@@ -55,8 +55,8 @@ jobs:
             }
           }
 
-      - name: Get python-dsl version and PyPI SHA256
-        id: python_dsl
+      - name: Get python-sdk version and PyPI SHA256
+        id: python_sdk
         shell: pwsh
         run: |
           $version = '${{ steps.version.outputs.version }}'
@@ -66,23 +66,23 @@ jobs:
           git clone --depth 1 --branch "v$version" https://github.com/shivasurya/code-pathfinder.git code-pathfinder-repo
 
           # Extract version from pyproject.toml
-          $pyprojectPath = "code-pathfinder-repo\python-dsl\pyproject.toml"
+          $pyprojectPath = "code-pathfinder-repo\python-sdk\pyproject.toml"
           if (-not (Test-Path $pyprojectPath)) {
-            throw "ERROR: python-dsl/pyproject.toml not found in repo"
+            throw "ERROR: python-sdk/pyproject.toml not found in repo"
           }
 
           $content = Get-Content $pyprojectPath -Raw
           if ($content -match 'version\s*=\s*"([^"]+)"') {
-            $pythonDslVersion = $matches[1]
-            echo "version=$pythonDslVersion" >> $env:GITHUB_OUTPUT
-            Write-Host "Found python-dsl version: $pythonDslVersion"
+            $pythonSdkVersion = $matches[1]
+            echo "version=$pythonSdkVersion" >> $env:GITHUB_OUTPUT
+            Write-Host "Found python-sdk version: $pythonSdkVersion"
           } else {
             throw "ERROR: Could not extract version from pyproject.toml"
           }
 
           # Get PyPI package SHA256 checksums (all distributions)
           Write-Host "Fetching PyPI package checksums..."
-          $pypiJson = Invoke-RestMethod "https://pypi.org/pypi/codepathfinder/$pythonDslVersion/json"
+          $pypiJson = Invoke-RestMethod "https://pypi.org/pypi/codepathfinder/$pythonSdkVersion/json"
 
           # Get all package checksums (wheels and source dist)
           $allChecksums = @()
@@ -93,7 +93,7 @@ jobs:
           }
 
           if ($allChecksums.Count -eq 0) {
-            throw "ERROR: Could not find any packages on PyPI for version $pythonDslVersion"
+            throw "ERROR: Could not find any packages on PyPI for version $pythonSdkVersion"
           }
 
           # Join all checksums with spaces
@@ -127,14 +127,14 @@ jobs:
         shell: pwsh
         run: |
           $version = '${{ steps.version.outputs.version }}'
-          $pythonDslVersion = '${{ steps.python_dsl.outputs.version }}'
+          $pythonSdkVersion = '${{ steps.python_sdk.outputs.version }}'
           $sha256 = '${{ steps.sha256.outputs.sha256 }}'
-          $pypiSha256 = '${{ steps.python_dsl.outputs.pypi_sha256 }}'
+          $pypiSha256 = '${{ steps.python_sdk.outputs.pypi_sha256 }}'
           $url = "https://github.com/shivasurya/code-pathfinder/releases/download/v$version/pathfinder-windows-amd64.exe"
 
           Write-Host "Updating package files..."
           Write-Host "Binary version: $version"
-          Write-Host "Python DSL version: $pythonDslVersion"
+          Write-Host "Python SDK version: $pythonSdkVersion"
           Write-Host "PyPI SHA256: $pypiSha256"
 
           # Update nuspec
@@ -145,7 +145,7 @@ jobs:
           # Update chocolateyinstall.ps1
           $install = Get-Content -Path 'tools/chocolateyinstall.ps1' -Raw
           $install = $install -replace "\`$version = '[^']+'\s*# VERSION_MARKER", "`$version = '$version'  # VERSION_MARKER"
-          $install = $install -replace "\`$pythonDslVersion = '[^']+'\s*# PYTHON_DSL_VERSION_MARKER", "`$pythonDslVersion = '$pythonDslVersion'  # PYTHON_DSL_VERSION_MARKER"
+          $install = $install -replace "\`$pythonSdkVersion = '[^']+'\s*# PYTHON_SDK_VERSION_MARKER", "`$pythonSdkVersion = '$pythonSdkVersion'  # PYTHON_SDK_VERSION_MARKER"
           $install = $install -replace "\`$url = '[^']+'\s*# URL_MARKER", "`$url = '$url'  # URL_MARKER"
           $install = $install -replace "\`$checksum = '[^']+'\s*# SHA256_MARKER", "`$checksum = '$sha256'  # SHA256_MARKER"
           $install = $install -replace "\`$pypiChecksum = '[^']+'\s*# PYPI_SHA256_MARKER", "`$pypiChecksum = '$pypiSha256'  # PYPI_SHA256_MARKER"
@@ -153,11 +153,11 @@ jobs:
 
           # Update VERIFICATION.txt
           $verification = Get-Content -Path 'tools/VERIFICATION.txt' -Raw
-          $verification = $verification -replace 'Version: [^\r\n]+', "Version: $version (Python DSL: $pythonDslVersion)"
+          $verification = $verification -replace 'Version: [^\r\n]+', "Version: $version (Python SDK: $pythonSdkVersion)"
           $verification = $verification -replace 'releases/tag/v[^\r\n]+', "releases/tag/v$version"
           $verification = $verification -replace 'releases/download/v[^/]+/pathfinder-windows-amd64\.exe', "releases/download/v$version/pathfinder-windows-amd64.exe"
           $verification = $verification -replace 'SHA256 Checksum:\s*[^\r\n]+', "SHA256 Checksum:`n$sha256"
-          $verification = $verification -replace 'codepathfinder/[0-9.]+/', "codepathfinder/$pythonDslVersion/"
+          $verification = $verification -replace 'codepathfinder/[0-9.]+/', "codepathfinder/$pythonSdkVersion/"
           $verification = $verification -replace 'PyPI SHA256 Checksum:\s*[^\r\n]+', "PyPI SHA256 Checksum:`n$pypiSha256"
           Set-Content -Path 'tools/VERIFICATION.txt' -Value $verification -NoNewline
 
@@ -196,7 +196,7 @@ jobs:
 
             ## Release
             - Version: `${{ steps.version.outputs.version }}`
-            - Python DSL: `${{ steps.python_dsl.outputs.version }}`
+            - Python SDK: `${{ steps.python_sdk.outputs.version }}`
             - Release URL: https://github.com/shivasurya/code-pathfinder/releases/tag/v${{ steps.version.outputs.version }}
 
             ## Changes
@@ -217,7 +217,7 @@ jobs:
 
             **PyPI Package:**
             ```
-            ${{ steps.python_dsl.outputs.pypi_sha256 }}
+            ${{ steps.python_sdk.outputs.pypi_sha256 }}
             ```
 
             ## Verification

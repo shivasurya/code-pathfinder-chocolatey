@@ -3,7 +3,7 @@ Verification is intended to assist the Chocolatey moderators and community
 in verifying that this package's contents are trustworthy.
 
 Package: code-pathfinder
-Version: 1.1.5 (Python DSL: 1.1.5)
+Version: 1.1.5 (Python SDK: 1.1.5)
 
 The binary is downloaded from the official GitHub Releases:
 https://github.com/shivasurya/code-pathfinder/releases/tag/v1.1.5
