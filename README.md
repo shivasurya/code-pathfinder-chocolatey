@@ -24,7 +24,7 @@ pathfinder scan --project /path/to/code --rules /path/to/rules
 ## What Gets Installed
 
 - **pathfinder.exe** - The main Code Pathfinder binary
-- **Python virtualenv** - Isolated Python environment with `codepathfinder` package for DSL support
+- **Python virtualenv** - Isolated Python environment with `codepathfinder` package for SDK support
 - **Wrapper script** - Ensures Python environment is available when running pathfinder
 
 ## Package Maintenance
