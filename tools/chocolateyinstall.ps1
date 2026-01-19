@@ -2,12 +2,12 @@ $ErrorActionPreference = 'Stop'
 
 $packageName = 'code-pathfinder'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$version = '1.2.0'  # VERSION_MARKER
-$pythonSdkVersion = '1.2.0'  # PYTHON_SDK_VERSION_MARKER
-$url = 'https://github.com/shivasurya/code-pathfinder/releases/download/v1.2.0/pathfinder-windows-amd64.exe'  # URL_MARKER
-$checksum = '862bb3ba5c52066fc4c7fad239aa5db9d26d6ea35c6fdefdbdf0e0c0d0d626ed'  # SHA256_MARKER
+$version = '1.2.1'  # VERSION_MARKER
+$pythonSdkVersion = '1.2.1'  # PYTHON_SDK_VERSION_MARKER
+$url = 'https://github.com/shivasurya/code-pathfinder/releases/download/v1.2.1/pathfinder-windows-amd64.exe'  # URL_MARKER
+$checksum = '9d621c41fe6fb856bc98e14f99a24a3cc13e9a7a2d8f6d69353d7f451845fdf2'  # SHA256_MARKER
 $checksumType = 'sha256'
-$pypiChecksum = 'ff6835096c3c62aa9ed65e38b6f74e7884f84e44455620c12ecf57d6045ac04c 745fb1d83776c7f78a8d34177eb67f1cf2568898ea8265426a48a6e9e4001000 31bbfc0e52e8e3059a48cb9bf3f69ad1d57f6472179e4a7423d9091de87c682a 8aab40f0888e7edc6a3b0e6ff371a73e7a646b7250a34eac73d4805c8d4656cc 383bacfdaac615e6ed6b1ec4691be5f81daf032ca8928cd02d88758af2ef35d2 8ac96c0b08a70bf3fc248d3e78dc4467a33813d31868ec78d2872a9721407399'  # PYPI_SHA256_MARKER
+$pypiChecksum = '18ca304256bd74a3d3028a448ff7175e617563fb7e158a68b6a18d3f74159a87 440c1d9bba4b4cb76cd0f7f36cb4a4442b9782047b240774b91587384508976f f60847e8d8ba60682a99451006fc5cb91e4f3b7b655fcaf20ba07dedbcfffd41 68bef8ccd80447bfd629aebb09fadb83e163c868f132df95826e2620b1881cae 2a165353ca23ddf52047c27a4737808d0fc77c83a43d9cc39e0f8602c8ce5022 831213c23413e7ab08eaaee602b7bcd9872ac55f2547cdbbfacfdb3dc4f00069'  # PYPI_SHA256_MARKER
 
 $finalExeName = 'pathfinder.exe'
 $downloadedFileName = 'pathfinder-windows-amd64.exe'
